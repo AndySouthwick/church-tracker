@@ -1,0 +1,45 @@
+name: fly-deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  FLY_APP: lds-leadership-tracker   # must match the "app" name in fly.toml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Optional: if you also want to run your collectors on CI before deploy
+      # - name: Setup Python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: "3.11"
+      # - name: Install deps
+      #   run: pip install -r requirements.txt
+      # - name: Smoke test (optional)
+      #   run: python -m compileall .
+
+      - name: Set up Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@v1
+
+      - name: Sync secrets to Fly
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          YT_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          # Stage the secret so the next deploy picks it up
+          # (no new release created until deploy step)
+          printf "YOUTUBE_API_KEY=%s\n" "$YT_KEY" | flyctl secrets import --stage -a "$FLY_APP"
+
+      - name: Deploy to Fly.io
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          # --remote-only builds in Fly’s infra (no local Docker needed)
+          flyctl deploy --config fly.toml --remote-only -a "$FLY_APP"
