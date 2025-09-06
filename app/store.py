@@ -14,7 +14,7 @@ def init():
 def load_processed(conn):
     for p in glob.glob("data/processed/*.json"):
         d = json.loads(open(p,"r",encoding="utf-8").read())
-        conn.execute("""INSERT OR REPLACE INTO posts VALUES (?,?,?,?,?,?,?,?,?,?)""",
+        conn.execute("""INSERT OR REPLACE INTO posts VALUES (?,?,?,?,?,?,?,?,?)""",
                      (d["id"], d["source_type"], d["source_name"], d["title"], d["url"],
                       d.get("published_at"), d.get("author"), d.get("body",""), d.get("summary","")))
     conn.commit()

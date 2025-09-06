@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && \
-    python -m spacy download en_core_web_sm
+RUN pip3 install --no-cache-dir -r requirements.txt && \
+    python3 -m spacy download en_core_web_sm
 
 COPY . .
 

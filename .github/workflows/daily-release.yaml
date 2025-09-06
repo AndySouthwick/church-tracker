@@ -1,0 +1,84 @@
+name: daily-release
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # daily at 06:00 UTC
+  workflow_dispatch: {}    # manual run button
+
+permissions:
+  contents: write          # needed to create releases
+
+concurrency:
+  group: daily-release
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: "3.11"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Meta (UTC tag)
+        id: meta
+        run: echo "tag=data-$(date -u +%Y%m%d-%H%M)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Collect RSS
+        run: python pipelines/rss_collect.py
+
+      - name: Collect YouTube (soft-fail if key missing)
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          if [ -n "${{ secrets.YOUTUBE_API_KEY }}" ]; then
+            python pipelines/youtube_collect.py || echo "[warn] YouTube collection failed; continuing..."
+          else
+            echo "[info] YOUTUBE_API_KEY not set; skipping YouTube collection."
+          fi
+
+      - name: Normalize
+        run: python pipelines/normalize.py
+
+      - name: Build DB + vectors
+        run: |
+          python - <<'PY'
+          from app.store import init, load_processed, init_vectors, upsert_vectors
+          c = init(); load_processed(c); coll = init_vectors(); upsert_vectors(coll)
+          print("DB + vectors ready")
+          PY
+
+      - name: Package snapshot
+        run: |
+          mkdir -p dist
+          zip -r "dist/tracker-artifacts-${{ steps.meta.outputs.tag }}.zip" \
+            tracker.db .chroma data/processed || true
+          ls -lah dist
+
+      # Optional: keep a short-lived artifact (easy to grab from the run)
+      - name: Upload artifact (7-day retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: tracker-artifacts
+          path: dist/*.zip
+          retention-days: 7
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: "Church tracker data – ${{ steps.meta.outputs.tag }}"
+          body: |
+            Automated daily data snapshot (RSS + YouTube if key present).
+            Includes: tracker.db, .chroma/, data/processed/
+          files: dist/*.zip
