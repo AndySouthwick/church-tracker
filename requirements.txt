@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+feedparser
+google-api-python-client
+beautifulsoup4
+readability-lxml
+requests
+python-dateutil
+pydantic
+sqlalchemy
+sqlite-utils
+sentence-transformers
+chromadb
+spacy
+spacy-transformers

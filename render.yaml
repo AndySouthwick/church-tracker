@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: church-tracker
+    runtime: docker
+    plan: free
+    envVars:
+      - key: YOUTUBE_API_KEY
+        sync: false
+    healthCheckPath: /recent

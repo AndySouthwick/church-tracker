@@ -1,0 +1,9 @@
+.chroma/
+__pycache__/
+*.pyc
+.env
+tracker.db
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep

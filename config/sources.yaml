@@ -1,0 +1,18 @@
+rss:
+  - name: Church Newsroom (global)
+    url: https://newsroom.churchofjesuschrist.org/rss
+  - name: Church News (All News & Events)
+    url: https://feeds.lds.org/church-news-and-events-eng
+
+youtube:
+  - name: Church (official)
+    handle: "@churchofjesuschrist"
+  - name: Church Newsroom (YouTube)
+    handle: "@churchnewsroom"
+  - name: Church News (YouTube)
+    channel_id: "UCbpG_4CUzJD3gUSS6wN8-2w"
+
+web:
+  - name: Newsroom – Worldwide Events page
+    url: https://newsroom.churchofjesuschrist.org/events
+    allowed: false
