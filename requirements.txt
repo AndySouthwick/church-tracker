@@ -7,9 +7,6 @@ readability-lxml
 requests
 python-dateutil
 pydantic
-sqlalchemy
 sqlite-utils
 sentence-transformers
 chromadb
-spacy
-spacy-transformers
