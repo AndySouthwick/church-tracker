@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLY_APP: lds-leadership-tracker   # must match the "app" name in fly.toml
+  FLY_APP: church-tracker   # must match the "app" name in fly.toml
 
 jobs:
   deploy:
@@ -48,3 +48,4 @@ jobs:
         run: |
           # --remote-only builds in Fly’s infra (no local Docker needed)
           flyctl deploy --config fly.toml --remote-only -a "$FLY_APP"
+
