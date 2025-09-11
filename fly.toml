@@ -4,16 +4,18 @@ primary_region = "iad"
 [http_service]
   internal_port = 8000
   force_https = true
-  auto_stop_machines = false
   auto_start_machines = true
+  auto_stop_machines = true
   min_machines_running = 1
 
-  [[http_service.checks]]
-    type = "http"
-    interval = "15s"
-    timeout = "2s"
-    method = "GET"
-    path = "/recent"
+  # Optional: give your app more time to boot
+  [http_service.concurrency]
+    soft_limit = 25
+    hard_limit = 50
 
-[env]
-  PORT = "8000"
+  [[http_service.checks]]
+    interval = "10s"
+    timeout  = "2s"
+    method   = "GET"
+    path     = "/healthz"   # make sure this exists
+    grace_period = "30s"    # increase if your app needs longer to start
