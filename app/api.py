@@ -1,3 +1,4 @@
+# app/api.py
 from fastapi import FastAPI, Query
 import sqlite3
 import chromadb
@@ -14,6 +15,21 @@ client = chromadb.Client()
 coll = client.get_or_create_collection("posts")
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
+@app.get("/health")
+def health(): return {"ok": True}
+
+@app.get("/stats")
+def stats():
+    c = get_conn()
+    # Count rows
+    row = c.execute("SELECT COUNT(*) AS n FROM posts").fetchone()
+    # How many vectors?
+    try:
+        meta = coll.count()
+    except Exception:
+        meta = None
+    return {"posts": row["n"], "vectors": meta}
+
 @app.get("/recent")
 def recent(limit: int = 20):
     c = get_conn()
@@ -25,7 +41,7 @@ def search(q: str = Query(..., min_length=2), k: int = 10):
     q_emb = model.encode(q, normalize_embeddings=True).tolist()
     res = coll.query(query_embeddings=[q_emb], n_results=k)
     results = []
-    for i in range(len(res["ids"][0])):
+    for i in range(len(res.get("ids", [[]])[0])):
         results.append({
             "id": res["ids"][0][i],
             "score": res["distances"][0][i],
